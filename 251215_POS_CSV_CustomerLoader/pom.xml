@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.example</groupId>
+    <artifactId>251215_streams_customers_csv</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+</project>
+
+<!--diff between intellIJ and MAVEN project structure?-->
+<!--IntelliJ IDEA uses its own project structure and configuration files (like .idea directory and .iml files) to manage project settings, dependencies, and build configurations. -->
+<!--It provides a more user-friendly interface for managing projects, with features like code completion, refactoring tools, and integrated version control.-->
+
+
+<!-- what are records in java? -->
+<!--&lt;!&ndash;Records in Java are a special kind of class introduced in Java 14 as a preview -->
+<!--feature and became a standard feature in Java 16. They are designed to be a concise way to create -->
+<!--immutable data carriers. Records automatically generate boilerplate code such as constructors, -->
+<!--accessor methods, equals(), hashCode(), and toString() methods based on the fields defined in the record. &ndash;&gt;-->
+<!--&lt;!&ndash;A record is defined using the 'record' keyword followed by the record name and its components.&ndash;&gt;-->
+<!--&lt;!&ndash;For example:&ndash;&gt;-->
+<!--&lt;!&ndash;public record Person(String name, int age) { }&ndash;&gt;-->
+<!--&lt;!&ndash;In this example, 'Person' is a record with two components: 'name' and 'age'. The compiler automatically -->
