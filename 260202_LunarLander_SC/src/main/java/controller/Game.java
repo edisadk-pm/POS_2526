@@ -192,7 +192,6 @@ public class Game extends BaseGame {
             model.setLocation(new Vector(modelX1, view.getHeight() - model.getHeight()));
             model.setVelocity(new Vector(0.0f, 0.0f));
             ACC_IMPULSE = 0.0f;
-            resetGame();
         }
 
         //collision with ceiling
