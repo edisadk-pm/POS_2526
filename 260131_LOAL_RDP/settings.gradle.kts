@@ -1,1 +1,0 @@
-rootProject.name = "260131_LOAL_RDP"

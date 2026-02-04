@@ -65,7 +65,9 @@ public class Game extends BaseGame {
             model.draw(g2d);
         }
 
-
+        if (gamestate == 1) {
+            gameOver(g2d);
+        }
     }
 
     private void drawFuelBar(Graphics2D g2d, MoonLander lander) {
@@ -192,6 +194,7 @@ public class Game extends BaseGame {
             model.setLocation(new Vector(modelX1, view.getHeight() - model.getHeight()));
             model.setVelocity(new Vector(0.0f, 0.0f));
             ACC_IMPULSE = 0.0f;
+            gamestate = 1; // game over
         }
 
         //collision with ceiling
@@ -199,6 +202,7 @@ public class Game extends BaseGame {
             model.setLocation(new Vector(modelX1, 0));
             model.setVelocity(new Vector(0.0f, 0.0f));
             ACC_IMPULSE = 0.0f;
+            gamestate = 1; // game over
         }
 
         //collion with walls
@@ -210,6 +214,7 @@ public class Game extends BaseGame {
             model.setLocation(new Vector(view.getWidth() - model.getWidth(), modelY1));
             model.setVelocity(new Vector(0.0f, 0.0f));
             ACC_IMPULSE = 0.0f;
+            gamestate = 1; // game over
         }
 
         //collion with each other
@@ -226,6 +231,7 @@ public class Game extends BaseGame {
                     model.setVelocity(new Vector(0.0f, 0.0f));
                     ACC_IMPULSE = 0.0f;
                     otherModel.setVelocity(new Vector(0.0f, 0.0f));
+                    gamestate = 1; // game over
                 }
             }
         }
@@ -239,6 +245,7 @@ public class Game extends BaseGame {
                 modelY1 + model.getHeight() > lzY1) {
             model.setVelocity(new Vector(0.0f, 0.0f));
             ACC_IMPULSE = 0.0f;
+            gamestate = 1; // game over
             model.setLocation(new Vector(modelX1, lzY1 - model.getHeight()));
         }
     }
@@ -254,12 +261,15 @@ public class Game extends BaseGame {
         gamestate = 0;
     }
 
-    private void gameOver() {
+    private void gameOver(Graphics2D g2d) {
         models.clear();
         //how to draw game over text -> handled in draw method
         gamestate = 1;
         ACC_IMPULSE = 0.0f;
         FUEL_CONSUMPTION_RATE = 0.0f;
+
+        g2d.setFont(new Font("Arial", Font.BOLD, 30));
+        g2d.drawString("YOU LOST!" , view.getWidth() / 2 - 30, view.getHeight() / 2);
     }
 
     public void won() {
