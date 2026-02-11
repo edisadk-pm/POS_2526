@@ -4,6 +4,7 @@ import Utils.Vector;
 import lombok.extern.java.Log;
 import model.LandingZone;
 import model.MoonLander;
+import model.World;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -15,9 +16,10 @@ import java.util.Random;
 @Log
 public class Game extends BaseGame {
 
-    private List<MoonLander> models = new ArrayList<>();
+    private final List<MoonLander> models = new ArrayList<>();
     Random random = new Random();
     LandingZone landingZone;
+    World world;
     private final Vector GRAVITY = new Vector(0.0f, 0.0001f);
     private float ACC_IMPULSE = 0.1f;
     private float FUEL_CONSUMPTION_RATE = 0.3f;
@@ -26,6 +28,9 @@ public class Game extends BaseGame {
 
     @Override
     public void init() {
+        // Initialize world with view dimensions
+        world = new World(view.getWidth(), view.getHeight());
+
         // Initialize landing zone here after view is available
         landingZone = new LandingZone(40, 10, random.nextInt(view.getWidth() - 100) + 50, view.getHeight() - 30);
 
@@ -41,7 +46,17 @@ public class Game extends BaseGame {
     public void update() {
         for(MoonLander model : models) {
             model.update(GRAVITY);
-            collision(model);
+
+            // Use World's collision detection
+            int collisionResult = world.checkCollision(model, models, landingZone);
+            if (collisionResult == 1) {
+                ACC_IMPULSE = 0.0f;
+                gamestate = 1; // game over
+            } else if (collisionResult == 2) {
+                ACC_IMPULSE = 0.0f;
+                gamestate = 2; // won
+            }
+
             model.setFuel(model.getFuel() - FUEL_CONSUMPTION_RATE);
 
             if (model.getFuel() < 0.0f) {
@@ -57,7 +72,7 @@ public class Game extends BaseGame {
 
         // Draw fuel bar on the left side
         if (!models.isEmpty()) {
-            drawFuelBar(g2d, models.get(0));
+            drawFuelBar(g2d, models.getFirst());
         }
 
         landingZone.draw(g2d);
@@ -67,6 +82,8 @@ public class Game extends BaseGame {
 
         if (gamestate == 1) {
             gameOver(g2d);
+        } else if (gamestate == 2) {
+            won(g2d);
         }
     }
 
@@ -131,38 +148,26 @@ public class Game extends BaseGame {
         log.info("--> game keyPressed called " + e.getKeyChar());
         switch (e.getKeyChar()) {
             case 'w':
-                models.get(0).accelerate(new Vector(0.0f, -ACC_IMPULSE));
-                models.get(0).setFuel(models.get(0).getFuel() - FUEL_CONSUMPTION_RATE);
+                models.getFirst().accelerate(new Vector(0.0f, -ACC_IMPULSE));
+                models.getFirst().setFuel(models.getFirst().getFuel() - FUEL_CONSUMPTION_RATE);
 
                 break;
             case 's':
-                models.get(0).accelerate(new Vector(0.0f, ACC_IMPULSE));
-                models.get(0).setFuel(models.get(0).getFuel() - FUEL_CONSUMPTION_RATE);
+                models.getFirst().accelerate(new Vector(0.0f, ACC_IMPULSE));
+                models.getFirst().setFuel(models.getFirst().getFuel() - FUEL_CONSUMPTION_RATE);
                 break;
             case 'a':
-                models.get(0).accelerate(new Vector(-ACC_IMPULSE, 0.0f));
-                models.get(0).setFuel(models.get(0).getFuel() - FUEL_CONSUMPTION_RATE);
+                models.getFirst().accelerate(new Vector(-ACC_IMPULSE, 0.0f));
+                models.getFirst().setFuel(models.getFirst().getFuel() - FUEL_CONSUMPTION_RATE);
                 break;
             case 'd':
-                models.get(0).accelerate(new Vector(ACC_IMPULSE, 0.0f));
-                models.get(0).setFuel(models.get(0).getFuel() - FUEL_CONSUMPTION_RATE);
-                break;
-            case 'i':
-                models.get(1).accelerate(new Vector(0.0f, -ACC_IMPULSE));
-                break;
-            case 'k':
-                models.get(1).accelerate(new Vector(0.0f, ACC_IMPULSE));
-                break;
-            case 'j':
-                models.get(1).accelerate(new Vector(-ACC_IMPULSE, 0.0f));
-                break;
-            case 'l':
-                models.get(1).accelerate(new Vector(ACC_IMPULSE, 0.0f));
+                models.getFirst().accelerate(new Vector(ACC_IMPULSE, 0.0f));
+                models.getFirst().setFuel(models.getFirst().getFuel() - FUEL_CONSUMPTION_RATE);
                 break;
 
             case ' ':
                 // activate debug mode
-                models.get(0).setDebugMode(!models.get(0).isDebugMode());
+                models.getFirst().setDebugMode(!models.getFirst().isDebugMode());
                 break;
 
             case 'r':
@@ -184,74 +189,10 @@ public class Game extends BaseGame {
         }
     }
 
-    private void collision(MoonLander model) {
-        int modelX1 = (int) model.getLocation().getX();
-        int modelY1 = (int) model.getLocation().getY();
-
-
-        //collion with floor
-        if (modelY1 + model.getHeight() >= view.getHeight()) {
-            model.setLocation(new Vector(modelX1, view.getHeight() - model.getHeight()));
-            model.setVelocity(new Vector(0.0f, 0.0f));
-            ACC_IMPULSE = 0.0f;
-            gamestate = 1; // game over
-        }
-
-        //collision with ceiling
-        if (modelY1 <= 0) {
-            model.setLocation(new Vector(modelX1, 0));
-            model.setVelocity(new Vector(0.0f, 0.0f));
-            ACC_IMPULSE = 0.0f;
-            gamestate = 1; // game over
-        }
-
-        //collion with walls
-        if (modelX1 <= 0) {
-            model.setLocation(new Vector(0, modelY1));
-            model.setVelocity(new Vector(0.0f, 0.0f));
-            ACC_IMPULSE = 0.0f;
-        } else if (modelX1 + model.getWidth() >= view.getWidth()) {
-            model.setLocation(new Vector(view.getWidth() - model.getWidth(), modelY1));
-            model.setVelocity(new Vector(0.0f, 0.0f));
-            ACC_IMPULSE = 0.0f;
-            gamestate = 1; // game over
-        }
-
-        //collion with each other
-        for (MoonLander otherModel : models) {
-            if (otherModel != model) {
-                int otherX1 = (int) otherModel.getLocation().getX();
-                int otherY1 = (int) otherModel.getLocation().getY();
-
-                if (modelX1 < otherX1 + otherModel.getWidth() &&
-                        modelX1 + model.getWidth() > otherX1 &&
-                        modelY1 < otherY1 + otherModel.getHeight() &&
-                        modelY1 + model.getHeight() > otherY1) {
-                    // Simple collision response: stop both models
-                    model.setVelocity(new Vector(0.0f, 0.0f));
-                    ACC_IMPULSE = 0.0f;
-                    otherModel.setVelocity(new Vector(0.0f, 0.0f));
-                    gamestate = 1; // game over
-                }
-            }
-        }
-
-        //collision with landing zone
-        int lzX1 = landingZone.getX();
-        int lzY1 = landingZone.getY();
-        if (modelX1 < lzX1 + landingZone.getWidth() &&
-                modelX1 + model.getWidth() > lzX1 &&
-                modelY1 < lzY1 + landingZone.getHeight() &&
-                modelY1 + model.getHeight() > lzY1) {
-            model.setVelocity(new Vector(0.0f, 0.0f));
-            ACC_IMPULSE = 0.0f;
-            gamestate = 1; // game over
-            model.setLocation(new Vector(modelX1, lzY1 - model.getHeight()));
-        }
-    }
 
     private void resetGame() {
         models.clear();
+        world = new World(view.getWidth(), view.getHeight());
         int moonLanderWidth = 30;
         int moonLanderHeight = 50;
         int startX = view.getWidth() / 2 - moonLanderWidth/2;
@@ -259,6 +200,8 @@ public class Game extends BaseGame {
         models.add(new MoonLander(new Vector(startX, startY), moonLanderWidth, moonLanderHeight,500f));
         ACC_IMPULSE = 0.1f;
         gamestate = 0;
+        landingZone = new LandingZone(40, 10, random.nextInt(view.getWidth() - 100) + 50, view.getHeight() - 30);
+        FUEL_CONSUMPTION_RATE = 0.3f;
     }
 
     private void gameOver(Graphics2D g2d) {
@@ -268,14 +211,20 @@ public class Game extends BaseGame {
         ACC_IMPULSE = 0.0f;
         FUEL_CONSUMPTION_RATE = 0.0f;
 
+        //draw fire emoji at the position of the lander
+        g2d.setFont(new Font("Arial", Font.PLAIN, 50));
+        g2d.drawString("\uD83D\uDCA5", (int)models.getFirst().getLocation().getX(), (int)models.getFirst().getLocation().getY() + models.getFirst().getHeight());
+
         g2d.setFont(new Font("Arial", Font.BOLD, 30));
-        g2d.drawString("YOU LOST!" , view.getWidth() / 2 - 30, view.getHeight() / 2);
+        g2d.drawString("YOU LOST!" , view.getWidth() / 2 - 80, view.getHeight() / 2);
     }
 
-    public void won() {
+    public void won(Graphics2D g2d) {
         models.clear();
         gamestate = 2;
         ACC_IMPULSE = 0.0f;
-        resetGame();
+        FUEL_CONSUMPTION_RATE = 0.0f;
+        g2d.setFont(new Font("Arial", Font.BOLD, 30));
+        g2d.drawString("YOU WON!" , view.getWidth() / 2 - 85, view.getHeight() / 2);
     }
 }
